@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Expedientes de Productores - Palmatec</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary-blue: #004085;
+      --primary-dark: #002752;
+      --accent-green: #76BC21;
+      --accent-green-hover: #619c1b;
+      --bg-light: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --text-dark: #1E293B;
+      --text-muted: #64748B;
+      --border-color: #E2E8F0;
+      --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.08);
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: var(--bg-light); color: var(--text-dark); line-height: 1.5; }
+
+    /* Login Overlay */
+    .login-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.95); display: flex; align-items: center; justify-content: center; z-index: 3000; padding: 1rem;
+    }
+    .login-card {
+      background: #fff; padding: 2.5rem; border-radius: var(--radius); width: 100%; max-width: 400px; box-shadow: var(--shadow-lg); text-align: center;
+    }
+    .login-card img { height: 50px; margin-bottom: 1.5rem; object-fit: contain; }
+    .login-card h2 { color: var(--primary-blue); font-size: 1.3rem; margin-bottom: 1.5rem; }
+
+    /* Header */
+    header { background: #fff; padding: 1.2rem 2rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
+    header img { height: 48px; object-fit: contain; }
+    .header-title { font-size: 1.1rem; color: var(--primary-blue); font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .user-badge { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--text-muted); background: #F1F5F9; padding: 6px 12px; border-radius: 20px; }
+
+    /* Hero Banner */
+    .hero-banner-container {
+      width: 100%; height: 250px; position: relative;
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-blue) 100%);
+      overflow: hidden; display: flex; align-items: center; justify-content: center;
+    }
+    .hero-pattern {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background-image: radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px);
+      background-size: 24px 24px; opacity: 0.6;
+    }
+    .hero-content { position: relative; z-index: 1; text-align: center; color: #fff; padding: 0 1rem; }
+    .hero-content h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .hero-content p { color: #E2E8F0; font-size: 1.05rem; max-width: 650px; margin: 0 auto; }
+
+    /* Main Section */
+    .main-container { max-width: 1280px; margin: -2rem auto 4rem; padding: 0 1.5rem; position: relative; z-index: 2; }
+    .layout-grid { display: grid; grid-template-columns: 420px 1fr; gap: 2rem; }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg); padding: 2rem; border-radius: var(--radius);
+      box-shadow: var(--shadow-lg); border: 1px solid var(--border-color); height: fit-content;
+    }
+    .card h3 { color: var(--primary-blue); font-size: 1.15rem; margin-bottom: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .divider { height: 1px; background: var(--border-color); margin: 1.5rem 0; }
+
+    /* Form Styles */
+    .form-group { margin-bottom: 1.2rem; }
+    .form-group label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.4rem; color: var(--text-dark); }
+    input[type="text"], input[type="password"], input[type="file"], select {
+      width: 100%; padding: 10px 14px; border: 1px solid var(--border-color);
+      border-radius: 6px; font-size: 0.9rem; font-family: inherit; background-color: #F8FAFC;
+    }
+    input:focus, select:focus { outline: none; border-color: var(--primary-blue); background-color: #FFF; box-shadow: 0 0 0 3px rgba(0, 64, 133, 0.15); }
+
+    .file-upload-box {
+      border: 2px dashed var(--border-color); padding: 12px; border-radius: 6px;
+      text-align: center; background: #F8FAFC; cursor: pointer; transition: border-color 0.2s;
+    }
+    .file-upload-box:hover { border-color: var(--primary-blue); }
+    .file-upload-box input { display: none; }
+    .file-upload-label { font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 4px; }
+
+    /* Buttons */
+    .btn {
+      background-color: var(--accent-green); color: #FFFFFF; font-weight: 600; border: none;
+      padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9rem;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s;
+    }
+    .btn:hover { background-color: var(--accent-green-hover); }
+    .btn-block { width: 100%; }
+    .btn-secondary { background-color: #64748B; }
+    .btn-secondary:hover { background-color: #475569; }
+    .btn-info { background-color: #0284C7; color: #fff; padding: 6px 10px; font-size: 0.8rem; }
+    .btn-info:hover { background-color: #0369A1; }
+    .btn-danger { background-color: #EF4444; padding: 6px 10px; font-size: 0.8rem; color:#fff; }
+    .btn-warning { background-color: #F59E0B; padding: 6px 10px; font-size: 0.8rem; color: #fff; }
+
+    /* Table */
+    .table-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; gap: 1rem; flex-wrap: wrap; }
+    .search-box { flex: 1; min-width: 250px; position: relative; }
+    .search-box i { position: absolute; left: 12px; top: 12px; color: var(--text-muted); }
+    .search-box input { padding-left: 36px; }
+    .table-responsive { width: 100%; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+    th { background: #F1F5F9; color: var(--text-dark); padding: 12px; font-weight: 600; border-bottom: 2px solid var(--border-color); }
+    td { padding: 12px; border-bottom: 1px solid var(--border-color); color: var(--text-muted); }
+    tr:hover td { background-color: #F8FAFC; color: var(--text-dark); }
+    .badge-sharepoint { display: inline-flex; align-items: center; gap: 5px; background: #EFF6FF; color: #1D4ED8; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+
+    /* Error Log Panel */
+    .error-panel {
+      margin-top: 1.5rem; background: #0F172A; color: #F87171; padding: 15px;
+      border-radius: 8px; font-family: monospace; font-size: 0.8rem; display: none;
+      white-space: pre-wrap; word-break: break-all; border: 1px solid #EF4444;
+    }
+    .error-panel.success { color: #4ADE80; border-color: #22C55E; }
+
+    /* Modal General */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; }
+    .modal-card { background: #fff; padding: 2rem; border-radius: var(--radius); width: 100%; max-width: 650px; box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto; position: relative; }
+    .modal-close { position: absolute; top: 15px; right: 20px; font-size: 1.2rem; cursor: pointer; color: var(--text-muted); }
+    .modal-close:hover { color: var(--text-dark); }
+
+    .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-blue); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 1rem; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    .doc-list { list-style: none; margin-top: 1rem; }
+    .doc-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #F8FAFC; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 8px; font-size: 0.9rem; }
+    .audit-info { background: #F1F5F9; padding: 10px 14px; border-radius: 6px; font-size: 0.8rem; color: var(--text-dark); margin-bottom: 1rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+
+    @media (max-width: 950px) { .layout-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <!-- MODAL DE LOGIN -->
+  <div class="login-overlay" id="loginOverlay">
+    <div class="login-card">
+      <img src="palmateclogo__1_-removebg-preview.png" alt="Palmatec Logo">
+      <h2>Iniciar Sesión</h2>
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="loginUser">Usuario</label>
+          <input type="text" id="loginUser" placeholder="Ingrese usuario" required>
+        </div>
+        <div class="form-group">
+          <label for="loginPass">Contraseña</label>
+          <input type="password" id="loginPass" placeholder="Ingrese contraseña" required>
+        </div>
+        <button type="submit" class="btn btn-block" style="margin-top: 1rem;"><i class="fa-solid fa-right-to-bracket"></i> Ingresar</button>
+      </form>
+    </div>
+  </div>
+
+  <header>
+    <img src="palmateclogo__1_-removebg-preview.png" alt="Palmatec Logo">
+    <div style="display: flex; align-items: center; gap: 20px;">
+      <div class="header-title">
+        <i class="fa-solid fa-folder-tree"></i> Sistema de Gestión de Expedientes
+      </div>
+      <div class="user-badge" id="userBadgeDisplay">
+        <i class="fa-solid fa-user-shield"></i> <span id="userNameSpan">Invitado</span>
+        <button onclick="logout()" class="btn btn-danger" style="padding: 2px 6px; font-size: 0.75rem; margin-left: 8px;" title="Cerrar Sesión"><i class="fa-solid fa-power-off"></i></button>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero-banner-container">
+    <div class="hero-pattern"></div>
+    <div class="hero-content">
+      <h1>Expedientes de Productores</h1>
+      <p>Creación, actualización y almacenamiento estructurado en SharePoint (Área Agrícola).</p>
+    </div>
+  </section>
+
+  <div class="main-container">
+    <div class="layout-grid">
+      
+      <!-- Formulario -->
+      <div class="card" id="formCardContainer">
+        <h3 id="form-title"><i class="fa-solid fa-user-plus"></i> Nuevo Expediente</h3>
+        
+        <form id="producerForm" onsubmit="saveProducer(event)">
+          <input type="hidden" id="editIndex" value="-1">
+          
+          <div class="form-group">
+            <label for="nombre">Nombre Completo del Productor *</label>
+            <input type="text" id="nombre" placeholder="Ej. Juan Perez" required>
+          </div>
+
+          <div class="form-group">
+            <label for="cedula">Cédula de Identidad *</label>
+            <input type="text" id="cedula" placeholder="Ej. 1-1234-5678" required>
+          </div>
+
+          <div class="form-group">
+            <label for="codigo">Código de Productor *</label>
+            <input type="text" id="codigo" placeholder="Ej. PP0001" required>
+          </div>
+
+          <div class="divider"></div>
+
+          <h3 style="font-size: 1rem; margin-bottom: 0.8rem;"><i class="fa-solid fa-file-pdf"></i> Documentos Iniciales (PDF)</h3>
+
+          <div class="form-group">
+            <label>PDF Cédula de Identidad *</label>
+            <div class="file-upload-box" onclick="document.getElementById('fileCedula').click()">
+              <i class="fa-solid fa-cloud-arrow-up" style="color: var(--primary-blue); font-size: 1.2rem;"></i>
+              <span class="file-upload-label" id="label-cedula">Adjuntar Cédula (PDF)</span>
+              <input type="file" id="fileCedula" accept=".pdf" onchange="updateFileName('fileCedula', 'label-cedula')" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>PDF Plano Catastrado (Principal / Finca) *</label>
+            <div class="file-upload-box" onclick="document.getElementById('filePlano').click()">
+              <i class="fa-solid fa-cloud-arrow-up" style="color: var(--primary-blue); font-size: 1.2rem;"></i>
+              <span class="file-upload-label" id="label-plano">Adjuntar Plano (PDF)</span>
+              <input type="file" id="filePlano" accept=".pdf" onchange="updateFileName('filePlano', 'label-plano')" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>PDF Escritura (Principal / Finca) *</label>
+            <div class="file-upload-box" onclick="document.getElementById('fileEscritura').click()">
+              <i class="fa-solid fa-cloud-arrow-up" style="color: var(--primary-blue); font-size: 1.2rem;"></i>
+              <span class="file-upload-label" id="label-escritura">Adjuntar Escritura (PDF)</span>
+              <input type="file" id="fileEscritura" accept=".pdf" onchange="updateFileName('fileEscritura', 'label-escritura')" required>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
+            <button type="submit" class="btn btn-block" id="btn-save"><i class="fa-solid fa-floppy-disk"></i> Guardar Expediente</button>
+            <button type="button" class="btn btn-secondary" id="btn-cancel" style="display: none;" onclick="resetForm()">Cancelar</button>
+          </div>
+        </form>
+
+        <div id="errorPanel" class="error-panel"></div>
+      </div>
+
+      <!-- Tabla y Buscador -->
+      <div class="card">
+        <div class="table-toolbar">
+          <h3><i class="fa-solid fa-folder-open"></i> Expedientes Registrados</h3>
+          <div class="search-box">
+            <i class="fa-solid fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Buscar por nombre, cédula o código..." onkeyup="renderTable()">
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Productor / Código</th>
+                <th>Cédula</th>
+                <th>Creador</th>
+                <th>Documentos</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: Ver y Gestionar Expediente -->
+  <div class="modal-overlay" id="expedienteModal">
+    <div class="modal-card">
+      <span class="modal-close" onclick="closeExpedienteModal()">&times;</span>
+      <h3 style="color: var(--primary-blue); margin-bottom: 0.5rem;"><i class="fa-solid fa-folder-tree"></i> Expediente del Productor</h3>
+      <p id="modalProducerInfo" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;"></p>
+      
+      <div id="auditDates" class="audit-info"></div>
+
+      <h4 style="font-size: 1rem; margin-bottom: 0.5rem; color: var(--text-dark);"><i class="fa-solid fa-file-shield"></i> Documentos Registrados</h4>
+      <ul id="modalDocList" class="doc-list"></ul>
+
+      <div class="divider" id="additionalDocDivider"></div>
+
+      <div id="additionalDocContainer">
+        <h4 style="font-size: 1rem; margin-bottom: 0.8rem; color: var(--primary-blue);"><i class="fa-solid fa-file-circle-plus"></i> Agregar Documento Adicional</h4>
+        <form id="addDocForm" onsubmit="addAdditionalDocument(event)">
+          <div class="form-group">
+            <label for="docType">Tipo de Documento / Categoría</label>
+            <select id="docType" required>
+              <option value="Plano Adicional (Nueva Finca)">Plano Adicional (Nueva Finca)</option>
+              <option value="Escritura Adicional (Nueva Finca)">Escritura Adicional (Nueva Finca)</option>
+              <option value="Documento de Ahorro">Documento de Ahorro</option>
+              <option value="Contrato / Acuerdo">Contrato / Acuerdo</option>
+              <option value="Otro Documento">Otro Documento</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Archivo PDF Adicional *</label>
+            <div class="file-upload-box" onclick="document.getElementById('fileAdicional').click()">
+              <i class="fa-solid fa-cloud-arrow-up" style="color: var(--primary-blue); font-size: 1.2rem;"></i>
+              <span class="file-upload-label" id="label-adicional">Seleccionar archivo PDF</span>
+              <input type="file" id="fileAdicional" accept=".pdf" onchange="updateFileName('fileAdicional', 'label-adicional')" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-block"><i class="fa-solid fa-upload"></i> Subir y Sincronizar a SharePoint</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Sincronización -->
+  <div class="modal-overlay" id="syncModal">
+    <div class="modal-card" style="max-width: 400px; text-align: center;">
+      <div class="spinner"></div>
+      <h3 style="color: var(--primary-blue); margin-bottom: 0.5rem;" id="syncModalTitle">Sincronizando...</h3>
+      <p style="color: var(--text-muted); font-size: 0.9rem;" id="syncModalText">Procesando solicitud...</p>
+    </div>
+  </div>
+
+  <script>
+    let producers = JSON.parse(localStorage.getItem('palmatec_producers')) || [];
+    let currentSelectedProducerIndex = -1;
+    let currentUser = sessionStorage.getItem('palmatec_user') || null;
+    
+    const powerAutomateUrl = "https://default6f0898866713470696445eefd6431b.6b.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/28/workflows/689e275594cd4213934c937d0dc0e9d9/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=1fLlHtPH3VH4j-QNo8a8mQr0h-s8N-s3Qeeme0MY_9c";
+
+    // Verificar sesión al cargar
+    window.addEventListener('DOMContentLoaded', () => {
+      checkLoginState();
+    });
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const user = document.getElementById('loginUser').value.trim().toLowerCase();
+      const pass = document.getElementById('loginPass').value.trim();
+
+      if ((user === 'contabilidad' && pass === '123456') || (user === 'agricola' && pass === 'Palmatec2026')) {
+        currentUser = user;
+        sessionStorage.setItem('palmatec_user', currentUser);
+        checkLoginState();
+      } else {
+        alert('Usuario o contraseña incorrectos.');
+      }
+    }
+
+    function logout() {
+      sessionStorage.removeItem('palmatec_user');
+      currentUser = null;
+      document.getElementById('loginUser').value = '';
+      document.getElementById('loginPass').value = '';
+      checkLoginState();
+    }
+
+    function checkLoginState() {
+      const loginOverlay = document.getElementById('loginOverlay');
+      const userNameSpan = document.getElementById('userNameSpan');
+
+      if (currentUser) {
+        loginOverlay.style.display = 'none';
+        userNameSpan.textContent = currentUser.toUpperCase();
+        renderTable();
+      } else {
+        loginOverlay.style.display = 'flex';
+      }
+    }
+
+    function updateFileName(inputId, labelId) {
+      const input = document.getElementById(inputId);
+      const label = document.getElementById(labelId);
+      if (input.files.length > 0) {
+        label.textContent = input.files[0].name;
+        label.style.color = "var(--accent-green)";
+      }
+    }
+
+    async function saveProducer(e) {
+      e.preventDefault();
+      
+      const nombre = document.getElementById('nombre').value.trim();
+      const cedula = document.getElementById('cedula').value.trim();
+      const codigo = document.getElementById('codigo').value.trim();
+      const editIndex = parseInt(document.getElementById('editIndex').value);
+      
+      const fileCedulaInput = document.getElementById('fileCedula');
+      const filePlanoInput = document.getElementById('filePlano');
+      const fileEscrituraInput = document.getElementById('fileEscritura');
+
+      if (editIndex === -1 && (!fileCedulaInput.files[0] || !filePlanoInput.files[0] || !fileEscrituraInput.files[0])) {
+        alert("Por favor adjunte los tres documentos obligatorios.");
+        return;
+      }
+
+      const errorPanel = document.getElementById('errorPanel');
+      errorPanel.style.display = 'none';
+
+      const isEditing = editIndex !== -1;
+      showSyncModal("Sincronizando con SharePoint...", isEditing ? "Actualizando datos y fecha de modificación..." : "Creando carpeta y subiendo documentos...");
+
+      try {
+        const now = new Date().toLocaleString();
+        let cedulaBase64 = "", planoBase64 = "", escrituraBase64 = "";
+        let cedulaName = "cedula.pdf", planoName = "plano.pdf", escrituraName = "escritura.pdf";
+
+        if (fileCedulaInput.files[0]) {
+          cedulaBase64 = await toBase64(fileCedulaInput.files[0]);
+          cedulaName = fileCedulaInput.files[0].name;
+        }
+        if (filePlanoInput.files[0]) {
+          planoBase64 = await toBase64(filePlanoInput.files[0]);
+          planoName = filePlanoInput.files[0].name;
+        }
+        if (fileEscrituraInput.files[0]) {
+          escrituraBase64 = await toBase64(fileEscrituraInput.files[0]);
+          escrituraName = fileEscrituraInput.files[0].name;
+        }
+
+        const payload = {
+          nombre,
+          cedula,
+          codigo,
+          createdBy: currentUser,
+          isAdditional: false,
+          isEdit: isEditing,
+          isDelete: false,
+          docType: "",
+          cedulaFile: { name: cedulaName, content: cedulaBase64 },
+          planoFile: { name: planoName, content: planoBase64 },
+          escrituraFile: { name: escrituraName, content: escrituraBase64 },
+          singleFile: { name: "", content: "" }
+        };
+
+        const response = await fetch(powerAutomateUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const errorBody = await response.text();
+          throw new Error(`HTTP ${response.status}: ${errorBody}`);
+        }
+
+        const folderName = `/Documentos compartidos/Sistema de Informacion/Agricola/${nombre}`;
+
+        if (!isEditing) {
+          let docsList = [
+            { name: cedulaName, type: "Cédula" },
+            { name: planoName, type: "Plano Catastrado" },
+            { name: escrituraName, type: "Escritura" }
+          ];
+          producers.unshift({
+            nombre, cedula, codigo, folderName,
+            createdBy: currentUser,
+            createdAt: now,
+            updatedAt: now,
+            docs: docsList
+          });
+        } else {
+          producers[editIndex].nombre = nombre;
+          producers[editIndex].cedula = cedula;
+          producers[editIndex].codigo = codigo;
+          producers[editIndex].folderName = folderName;
+          producers[editIndex].updatedAt = now;
+        }
+
+        localStorage.setItem('palmatec_producers', JSON.stringify(producers));
+        hideSyncModal();
+        resetForm();
+        renderTable();
+        
+        errorPanel.style.display = 'block';
+        errorPanel.className = 'error-panel success';
+        errorPanel.textContent = `¡ÉXITO! Expediente ${isEditing ? 'actualizado' : 'guardado'} para ${nombre}.`;
+
+      } catch (error) {
+        hideSyncModal();
+        console.error(error);
+        errorPanel.style.display = 'block';
+        errorPanel.className = 'error-panel';
+        errorPanel.textContent = `DETALLE DEL ERROR:\n${error.message}`;
+      }
+    }
+
+    async function addAdditionalDocument(e) {
+      e.preventDefault();
+      if (currentSelectedProducerIndex === -1) return;
+
+      const producer = producers[currentSelectedProducerIndex];
+      const docType = document.getElementById('docType').value;
+      const fileInput = document.getElementById('fileAdicional');
+      
+      if (!fileInput.files[0]) return;
+
+      const file = fileInput.files[0];
+      showSyncModal("Sincronizando...", `Subiendo ${docType} y actualizando fechas...`);
+
+      try {
+        const fileBase64 = await toBase64(file);
+        const now = new Date().toLocaleString();
+        
+        const payload = {
+          nombre: producer.nombre,
+          cedula: producer.cedula || "",
+          codigo: producer.codigo || "",
+          createdBy: producer.createdBy || currentUser,
+          isAdditional: true,
+          isEdit: false,
+          isDelete: false,
+          docType: docType,
+          cedulaFile: { name: "", content: "" },
+          planoFile: { name: "", content: "" },
+          escrituraFile: { name: "", content: "" },
+          singleFile: { name: file.name, content: fileBase64 }
+        };
+
+        const response = await fetch(powerAutomateUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const errorBody = await response.text();
+          throw new Error(`HTTP ${response.status}: ${errorBody}`);
+        }
+        
+        producer.docs.push({ name: file.name, type: docType });
+        producer.updatedAt = now;
+        localStorage.setItem('palmatec_producers', JSON.stringify(producers));
+        
+        hideSyncModal();
+        alert(`¡Documento "${file.name}" subido y fecha de modificación actualizada!`);
+        
+        document.getElementById('addDocForm').reset();
+        document.getElementById('label-adicional').textContent = "Seleccionar archivo PDF";
+        document.getElementById('label-adicional').style.color = "var(--text-muted)";
+        
+        openExpedienteModal(currentSelectedProducerIndex);
+        renderTable();
+
+      } catch (error) {
+        hideSyncModal();
+        console.error(error);
+        alert("DETALLE TÉCNICO DEL ERROR:\n" + error.message);
+      }
+    }
+
+    async function deleteProducer(index) {
+      if (currentUser !== 'agricola') {
+        alert("No cuenta con permisos para eliminar expedientes.");
+        return;
+      }
+
+      if (confirm("¿Está seguro de eliminar este expediente? Esto removerá el registro de la lista compartida.")) {
+        const producer = producers[index];
+        showSyncModal("Sincronizando...", `Eliminando expediente de ${producer.nombre}...`);
+
+        try {
+          const payload = {
+            nombre: producer.nombre,
+            cedula: producer.cedula,
+            codigo: producer.codigo,
+            createdBy: producer.createdBy || "",
+            isAdditional: false,
+            isEdit: false,
+            isDelete: true,
+            docType: "",
+            cedulaFile: { name: "", content: "" },
+            planoFile: { name: "", content: "" },
+            escrituraFile: { name: "", content: "" },
+            singleFile: { name: "", content: "" }
+          };
+
+          const response = await fetch(powerAutomateUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+          if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorBody}`);
+          }
+
+          producers.splice(index, 1);
+          localStorage.setItem('palmatec_producers', JSON.stringify(producers));
+          hideSyncModal();
+          renderTable();
+          alert("Expediente eliminado correctamente.");
+
+        } catch (error) {
+          hideSyncModal();
+          console.error(error);
+          alert("DETALLE TÉCNICO DEL ERROR:\n" + error.message);
+        }
+      }
+    }
+
+    function toBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = error => reject(error);
+      });
+    }
+
+    function renderTable() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+
+      const filtered = producers.filter(p => 
+        p.nombre.toLowerCase().includes(search) || 
+        p.cedula.toLowerCase().includes(search) || 
+        p.codigo.toLowerCase().includes(search)
+      );
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 2rem;">No se encontraron expedientes.</td></tr>`;
+        return;
+      }
+
+      filtered.forEach((p) => {
+        const realIndex = producers.indexOf(p);
+        const tr = document.createElement('tr');
+        
+        // Botones de acción según el rol
+        let actionButtons = `<button class="btn btn-info" onclick="openExpedienteModal(${realIndex})" title="Ver Expediente"><i class="fa-solid fa-folder-open"></i> Ver</button>`;
+        
+        if (currentUser === 'agricola') {
+          actionButtons += `
+            <button class="btn btn-warning" onclick="editProducer(${realIndex})" title="Editar"><i class="fa-solid fa-pen"></i></button>
+            <button class="btn btn-danger" onclick="deleteProducer(${realIndex})" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+          `;
+        }
+
+        tr.innerHTML = `
+          <td><strong>${p.nombre}</strong><br><span style="font-size: 0.75rem; color: var(--primary-blue);">${p.codigo}</span></td>
+          <td>${p.cedula}</td>
+          <td><span class="badge-sharepoint"><i class="fa-solid fa-user"></i> ${p.createdBy || 'N/D'}</span></td>
+          <td><span class="badge-sharepoint"><i class="fa-brands fa-microsoft"></i> ${p.docs.length} archivos</span></td>
+          <td>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+              ${actionButtons}
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openExpedienteModal(index) {
+      currentSelectedProducerIndex = index;
+      const p = producers[index];
+      
+      document.getElementById('modalProducerInfo').innerHTML = `
+        <strong>Productor:</strong> ${p.nombre} | <strong>Cédula:</strong> ${p.cedula} | <strong>Código:</strong> ${p.codigo}<br>
+        <span class="badge-sharepoint" style="margin-top: 6px;"><i class="fa-brands fa-microsoft"></i> Carpeta: ${p.folderName}</span>
+      `;
+
+      document.getElementById('auditDates').innerHTML = `
+        <div><i class="fa-solid fa-user" style="color: var(--primary-blue);"></i> <strong>Creado por:</strong> ${p.createdBy || 'N/D'}</div>
+        <div><i class="fa-solid fa-calendar-plus" style="color: var(--primary-blue);"></i> <strong>Creado:</strong> ${p.createdAt || 'N/D'}</div>
+        <div><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-green);"></i> <strong>Modificado:</strong> ${p.updatedAt || 'N/D'}</div>
+      `;
+
+      // Ambos usuarios (agricola y contabilidad) pueden ver la sección para subir documentos adicionales
+      document.getElementById('additionalDocContainer').style.display = 'block';
+      document.getElementById('additionalDocDivider').style.display = 'block';
+
+      const docListUl = document.getElementById('modalDocList');
+      docListUl.innerHTML = '';
+
+      if (p.docs && p.docs.length > 0) {
+        p.docs.forEach((doc) => {
+          docListUl.innerHTML += `
+            <li class="doc-item">
+              <div>
+                <i class="fa-solid fa-file-pdf" style="color: #EF4444; margin-right: 8px;"></i>
+                <strong>${doc.type}:</strong> ${doc.name}
+              </div>
+              <span style="font-size: 0.75rem; color: var(--accent-green); font-weight: 600;"><i class="fa-solid fa-check"></i> Sincronizado</span>
+            </li>
+          `;
+        });
+      } else {
+        docListUl.innerHTML = `<li style="text-align: center; color: var(--text-muted); padding: 1rem;">No hay documentos registrados.</li>`;
+      }
+
+      document.getElementById('expedienteModal').style.display = 'flex';
+    }
+
+    function closeExpedienteModal() {
+      document.getElementById('expedienteModal').style.display = 'none';
+      currentSelectedProducerIndex = -1;
+    }
+
+    function editProducer(index) {
+      if (currentUser !== 'agricola') {
+        alert("No cuenta con permisos para editar expedientes.");
+        return;
+      }
+      const p = producers[index];
+      document.getElementById('nombre').value = p.nombre;
+      document.getElementById('cedula').value = p.cedula;
+      document.getElementById('codigo').value = p.codigo;
+      document.getElementById('editIndex').value = index;
+      document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-user-pen"></i> Editar: ${p.codigo}`;
+      document.getElementById('btn-save').innerHTML = `<i class="fa-solid fa-arrow-rotate-right"></i> Actualizar Datos`;
+      document.getElementById('btn-cancel').style.display = 'inline-block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetForm() {
+      document.getElementById('producerForm').reset();
+      document.getElementById('editIndex').value = '-1';
+      document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-user-plus"></i> Nuevo Expediente`;
+      document.getElementById('btn-save').innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Guardar Expediente`;
+      document.getElementById('btn-cancel').style.display = 'none';
+      document.getElementById('label-cedula').textContent = "Adjuntar Cédula (PDF)";
+      document.getElementById('label-plano').textContent = "Adjuntar Plano (PDF)";
+      document.getElementById('label-escritura').textContent = "Adjuntar Escritura (PDF)";
+    }
+
+    function showSyncModal(title, text) {
+      document.getElementById('syncModalTitle').textContent = title;
+      document.getElementById('syncModalText').textContent = text;
+      document.getElementById('syncModal').style.display = 'flex';
+    }
+
+    function hideSyncModal() {
+      document.getElementById('syncModal').style.display = 'none';
+    }
+  </script>
+</body>
+</html>
